@@ -190,7 +190,7 @@ class Bot{
               "Telegram error: " + res->body
           );
   }
-  void _sendMessage(long long chat_id, const std::string& text, const InlineKeyboard& keyboard){
+  void sendMessage(long long chat_id, const std::string& text, const InlineKeyboard& keyboard){
     Object kb;
     kb["inline_keyboard"]=Val(Type::Array,Array());
     Array arr=kb["inline_keyboard"].get<Array>();
