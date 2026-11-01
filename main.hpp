@@ -93,7 +93,6 @@ class Bot{
     }
     if (!offset){
       offset=arr[arr.size()-1].get<Object>()["update_id"].get<long long>()+1;
-      return;
     }
     offset=arr[arr.size()-1].get<Object>()["update_id"].get<long long>()+1;
     wasUnupdated=false;
