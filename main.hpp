@@ -1,6 +1,6 @@
 
 #define CPPHTTPLIB_OPENSSL_SUPPORT
-#include <httplib.h>
+#include "httplib.h"
 #include <sstream>
 #include <iostream>
 #include <iomanip>
@@ -53,7 +53,7 @@ struct InlineKeyboard{
 class Bot{
   public:
   using Chain=std::vector<std::function<bool(std::string)>>;
-  private:
+  public:
   httplib::SSLClient cli{"api.telegram.org"};
   std::string token;
   long long offset=0;
@@ -104,15 +104,16 @@ class Bot{
       for (auto& [key,val]:o){
         std::cout<<key<<" "<<Unexecline(val)<<std::endl;
       }
-      if (o.find("message")!=o.end() && chains.find(o["message"].get<Object>()["chat"].get<Object>()["id"].get<long           long>())!=chains.end()){
+      if (o.find("message")!=o.end() && chains.find(o["message"].get<Object>()["chat"].get<Object>()["id"].get<long long>())!=chains.end()){
         std::cout<<"Found chain"<<std::endl;
-        bool res=chains[o["message"].get<Object>()["chat"].get<Object>()["id"].get<long long>()][0]                        (o["message"].get<Object>()["text"].get<std::string>());
+        bool res=chains[o["message"].get<Object>()["chat"].get<Object>()["id"].get<long long>()][0](o["message"].get<Object>()["text"].get<std::string>());
         if (res){
-          if (!chains[o["message"].get<Object>()["chat"].get<Object>()["id"].get<long long>                                                    ()].empty())
-          chains[o["message"].get<Object>()["chat"].get<Object>()["id"].get<long long>                                                    ()].erase(chains[o["message"].get<Object>()["chat"].get<Object>()["id"].get<long long>()].begin());
-          if (chains[o["message"].get<Object>()["chat"].get<Object>()["id"].get<long long>                                                    ()].empty())
+          if (!chains[o["message"].get<Object>()["chat"].get<Object>()["id"].get<long long>()].empty())
+          chains[o["message"].get<Object>()["chat"].get<Object>()["id"].get<long long>()].erase(chains[o["message"].get<Object>()["chat"].get<Object>()["id"].get<long long>()].begin());
+          if (chains[o["message"].get<Object>()["chat"].get<Object>()["id"].get<long long>()].empty()){
+            std::cout<<"Chain finished"<<std::endl;
             chains.erase(o["message"].get<Object>()["chat"].get<Object>()["id"].get<long long>());
-          std::cout<<"Chain finished"<<std::endl;
+          }
         }
         continue;
       }
@@ -171,7 +172,7 @@ class Bot{
   void sendMessage(long long chat_id, const std::string& text, const InlineKeyboard& keyboard){
     Object kb;
     kb["inline_keyboard"]=Val(Type::Array,Array());
-    Array& arr=kb["inline_keyboard"].get<Array>();
+    Array arr=kb["inline_keyboard"].get<Array>();
     for (auto& i:keyboard.buttons){
       Array Arr;
       for (auto& j:i){
@@ -182,6 +183,7 @@ class Bot{
       }
       arr.push_back(Val(Type::Array,Arr));
     }
+    kb["inline_keyboard"]=Val(Type::Array,arr);
     auto res=cli.Get("/bot"+token+"/sendMessage?chat_id="+std::to_string(chat_id)+"&text="+urlEncode(text)+"&reply_markup="+urlEncode(JsonToString(kb)));
     if (!res) throw std::runtime_error("Failed at sending message");
     std::cout<<"JS\n"<<JsonToString(kb)<<std::endl;
